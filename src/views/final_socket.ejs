@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat all</title>
+    <link rel="stylesheet" href="https://unpkg.com/mvp.css">
+    <script src="https://code.jquery.com/jquery-1.12.4.min.js"></script>
+    <script src="/socket.io/socket.io.js"></script>
+</head>
+<body>
+    <header>
+        <h1>AHHHHHHH!!</h1>
+    </header>
+    <main>
+        <div id="welcome">
+            <form>
+                <input id="roomName" placeholder="room name" required type="text" />
+                <input id="name" placeholder="nickname" required type="text" />
+                <button type="submit">Enter Room</button>
+            </form>
+        </div>
+        <div id="room">
+            <h3></h3>
+            <ul></ul>
+            <form id="name">
+                <input placeholder="nickname" required type="text" />
+                <button type="submit">Change</button>
+            </form>
+            <form id="msg">
+                <input placeholder="message" required type="text" />
+                <button type="submit">Send</button>
+            </form>
+        </div>
+    </main>
+    <script>
+        const socket = io.connect("");
+
+        socket.on("connect", function(){
+            console.log("Server Connected!🌐");
+        });
+
+        const welcome = document.getElementById("welcome");
+        const form = document.getElementsByTagName("form");
+        const room = document.getElementById("room");
+
+        room.hidden = true;
+
+        let roomName;
+
+        function addMessage(message){
+            const ul = room.querySelector("ul");
+            const li = document.createElement("li");
+            li.innerText = message;
+            ul.appendChild(li);
+        }
+
+        function handleMessageSubmit(event){
+            event.preventDefault();
+            const input = room.querySelector("#msg input");
+            const value = input.value;
+            socket.emit("new_message", input.value, roomName, () => {
+                addMessage(`You: ${value}`);
+            });
+            input.value = "";
+        }
+
+        function handleNicknameSubmit(event){
+            event.preventDefault();
+            const input = room.querySelector("#name input");
+            socket.emit("nickname", input.value);
+        }
+
+        function showRoom(){
+            welcome.hidden = true;
+            room.hidden = false;
+            const h3 = room.querySelector("h3");
+            h3.innerText = `Room ${roomName}`;
+            const msgForm = room.querySelector("#msg");
+            const nameForm = room.querySelector("#name");
+            msgForm.addEventListener("submit", handleMessageSubmit);
+            nameForm.addEventListener("submit", handleNicknameSubmit);
+        }
+
+        function handleRoomSubmit(event){
+            const roomNameInput = welcome.querySelector("#roomName");
+            const nickNameInput = welcome.querySelector("#name");
+            event.preventDefault();
+            socket.emit("enter_room", roomNameInput.value, nickNameInput.value, showRoom);
+            roomName = roomNameInput.value;
+            roomNameInput.value = "";
+            const changeNameInput = room.querySelector("#name input");
+            changeNameInput.value = nickNameInput.value;
+        }
+
+        welcome.addEventListener("submit", handleRoomSubmit);
+
+        
+        socket.on("welcome", (user) => {
+            addMessage(`${user}님이 들어왔습니다 ㅎㅎ`);
+        });
+
+        socket.on("bye", (left) => {
+            addMessage(`${left}님이 나갔습니다 ㅠㅠ`);
+        });
+
+        socket.on("new_message", addMessage);
+
+        /*for (var i = 0 ; i < form.length; i++) {
+            form[i].addEventListener('submit' , handleRoomSubmit ) ; 
+        };*/
+    </script>
+</body>
+</html>
