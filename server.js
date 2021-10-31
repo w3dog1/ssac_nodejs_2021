@@ -16,8 +16,18 @@ app.get("/", (_, res) => {
 //app.get("/*", (_, res) => res.redirect("/"));
 
 function publicRooms(){
-    const {sockets: {adapter: {sids, rooms}}} = io;
-
+    const {
+        sockets: {
+            adapter: { sids, rooms },
+        },
+    } = io;
+    const publicRooms = [];
+    rooms.forEach((_, key) => {
+        if(sids.get(key) === undefined){
+            publicRooms.push(key);
+        }
+    });
+    return publicRooms;
 }
 
 io.on("connection", function( socket ) {
