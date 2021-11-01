@@ -30,6 +30,10 @@ function publicRooms(){
     return publicRooms;
 }
 
+function countRoom(roomName){
+    return io.sockets.adapter.rooms.get(roomName)?.size;
+}
+
 io.on("connection", function( socket ) {
     socket["nickname"] = "Anonymous";
     console.log("socket connect");
@@ -41,11 +45,15 @@ io.on("connection", function( socket ) {
         socket["nickname"] = nickname;
         socket.join(roomName);
         console.log(socket.rooms);
-        socket.to(roomName).emit("welcome", socket.nickname);
-        done();
+        socket.to(roomName).emit("welcome", socket.nickname, countRoom(roomName));
+        done(countRoom(roomName));//이 새끼 안에 인자 안 넣었다가 데이터 클라이언트한테 안 갔잖아 ㅡㅡ;;
+        io.sockets.emit("room_change", publicRooms());
     });
     socket.on("disconnecting", () => {
-        socket.rooms.forEach((room) => socket.to(room).emit("bye", socket.nickname));
+        socket.rooms.forEach((room) => socket.to(room).emit("bye", socket.nickname, countRoom(room) - 1));
+    });
+    socket.on("disconnect", () => {
+        io.sockets.emit("room_change", publicRooms());
     });
     socket.on("new_message", (msg, room, done) => {
         socket.to(room).emit("new_message", `${socket.nickname}: ${msg}`);
