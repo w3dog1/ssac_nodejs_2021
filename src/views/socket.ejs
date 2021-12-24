@@ -1,0 +1,573 @@
+<!--
+        <style>
+
+            .myMsg{
+                background-color: aquamarine;
+                text-align: right;
+                color:cornflowerblue;
+            }
+
+            .yourMsg{
+                background-color: brown;
+                text-align: left;
+            }
+            
+            body {
+                margin: 10px;
+                color: #2e363e;
+                font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen,
+            Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+        }
+
+.status-bar {
+  display: flex;
+  justify-content: center;
+  padding: 5px 3px;
+}
+.status-bar__column {
+  width: 33%;
+}
+
+.status-bar__column:first-child span {
+  margin-right: 5px;
+}
+
+.status-bar__column:nth-child(2) {
+  display: flex;
+  justify-content: center;
+}
+
+.status-bar__column:last-child {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+}
+
+.status-bar__column .fa-battery-full {
+  margin: 0px 5px;
+}
+
+#status-bar .status-bar__column {
+  position: fixed;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.reply {
+  position: fixed;
+  bottom: 0;
+  width: 100%;
+  background-color: white;
+  display: flex;
+  justify-content: space-between;
+  padding: 5px 25px;
+  box-sizing: border-box;
+  align-items: center;
+  transition: transform 0.3s ease-in-out;
+}
+
+.reply__column:first-child {
+  width: 10%;
+  position: relative;
+}
+
+.reply__column:last-child {
+  width: 90%;
+  position: relative;
+}
+
+.reply input {
+  padding: 10px;
+  width: 70%;
+  border: var(--main-border);
+  border-radius: 20px;
+  transition: all 0.3s ease-in-out;
+}
+
+.reply__column:last-child button {
+  position: absolute;
+  right: 30px;
+  top: -6px;
+}
+
+.reply__column:last-child i {
+    position: absolute;
+    right: 25px;
+    top: 10px;
+}
+
+.reply__column button {
+  background-color: #2e363e;
+  border: 1px #2e363e solid;
+  width: 15px;
+  height: 15px;
+}
+
+.alt-header {
+  padding: var(--horizontal-space);
+  margin-bottom: 5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.alt-header__column {
+  width: 33%;
+}
+.alt-header__title {
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.alt-header__column:first-child {
+    margin-left: 0px;
+  margin-right: 50px;
+}
+
+.alt-header__column:nth-child(2) {
+  text-align: center;
+}
+
+.alt-header__column:last-child {
+  margin-left: auto;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.alt-header__column span:last-child {
+  margin-left: 18px;
+}
+
+.notice{
+    text-align: center;
+}
+
+        </style>
+
+    <body id="chat-screen">
+    <div class="status-bar">
+            <div class="status-bar__column">
+                <span>No Service</span>
+                <i class="fas fa-wifi"></i> 
+            </div>
+            <div class="status-bar__column">
+            <span>10:31</span>
+            </div>
+            <div class="status-bar__column">
+            <span>600%</span>
+            <i class="fas fa-battery-full fa-lg"></i>
+            </div>
+    </div>
+    <header class="alt-header">
+            <div class="alt-header__column">
+                <h1 class="alt-header__title">채팅 테스트 Socket View</h1>
+            </div>
+            <div class="alt-header__column">
+                <span><i class="fas fa-search fa-lg"></i></span>
+                <span><i class="fas fa-bars fa-lg"></i></span>
+            </div>
+    </header>
+    <main class="main-screen main-chat">
+            <div class="reply">
+				<div class="reply__column">
+                </div>
+                <div class="reply__column">
+                    <input type="text" required id="chat" placeholder="Write a message.." />
+                    <button onclick="a();">
+                        <i class="fas fa-arrow-up"></i>
+                    </button>
+                </div>
+            </div>
+            <div id="content">
+                <ul></ul>
+            </div>
+        </main>
+        <script>
+            const socket = io.connect();
+            const messageList = document.querySelector("ul");
+            const nickForm = document.querySelector("#nick");
+
+            let myNick;
+            let socket_id;
+
+            socket.on("connect", function(){
+                console.log("Server Connected!🌐");
+            });
+            
+            // button click으로 전송
+            function a(){
+                socket.emit( "sendMsg", document.getElementById("chat").value );
+                document.getElementById("chat").value="";
+                };
+
+            // enter key로 전송
+            chat.addEventListener('keypress', function(e){
+                if (e.key === "Enter"){
+                    if (chat === ""){
+                        alert ("공란을 채워 주세요")
+                        return false;
+                    } else {
+                        socket.emit("sendMsg", document.getElementById("chat").value);
+                        document.getElementById("chat").value="";
+                        $("#chat").focus();
+                    }
+                }
+            });
+            
+            /* socket id를 서버한테 클라이언트가 받아서 전역 변수에 넣어
+            socket.on('skcreated', (data)=>{
+                socketid = data;
+            });*/
+
+            socket.on("mySocket", (data) =>{
+                socketid = data;
+            });
+            
+            //서버로부터 새로운 메시지.. 통신을 받는다
+            socket.on( "newMsg", ( data ) => {
+                if(socket_id === data.socketid){
+                    //const li = document.createElement("li");
+                    //li.innerText = data;
+                    //messageList.append(li);
+                    $("ul").append( "<li class='myMsg'>"+"<span>ID: "+data["nick_a"]+"</span>"+data["chat_a"]+"</li>" );
+                    $("content").scrollTop($("#content")[0].scrollHeight);
+                } else {
+                    $("ul").append( "<li class='yourMsg'>"+"<span>ID: "+data["nick_a"]+"</span>"+data["chat_a"]+"</li>" );
+                };
+            });
+            
+            //입,퇴장 알림
+            socket.on("notice", (data) => {
+                let content = document.getElementById("content");
+                let div = document.createElement("div");
+                div.classList.add("notice");
+                div.textContent = data;
+                content.appendChild( div );
+                content.scrollTop = content.scrollHeight;
+            });
+
+            // socket.emit("event", {name: "홍길동"});
+        </script>
+    </body>
+-->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Chat All</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+	<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+
+    <link rel="stylesheet" href="https://unpkg.com/mvp.css">
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" rel="stylesheet">
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/3.0.4/socket.io.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.js" integrity="sha256-H+K7U5CnXl1h5ywQfKtSj8PCmoN9aaq30gDh27Xc0jk=" crossorigin="anonymous"></script>
+    <style>
+        body {
+                margin: 10px;
+                color: #2e363e;
+                font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen,
+            Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+        }
+
+
+.status-bar {
+  display: flex;
+  justify-content: center;
+  padding: 5px 3px;
+}
+.status-bar__column {
+  width: 33%;
+}
+
+.status-bar__column:first-child span {
+  margin-right: 5px;
+}
+
+.status-bar__column:nth-child(2) {
+  display: flex;
+  justify-content: center;
+}
+
+.status-bar__column:last-child {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+}
+
+.status-bar__column .fa-battery-full {
+  margin: 0px 5px;
+}
+
+#status-bar .status-bar__column {
+  position: fixed;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.alt-header {
+  padding: var(--horizontal-space);
+  margin-bottom: 5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.alt-header__column {
+  width: 33%;
+}
+.alt-header__title {
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.alt-header__column:first-child {
+    margin-right: 50px;
+}
+
+
+.alt-header__column:last-child {
+  margin-left: auto;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.alt-header__column span:last-child {
+  margin-left: 18px;
+}
+
+.reply {
+  display: flex;
+  justify-content: space-between;
+  padding: 5px 25px;
+  box-sizing: border-box;
+  align-items: center;
+  transition: transform 0.3s ease-in-out;
+}
+
+.reply__column:first-child {
+  width: 10%;
+  position: relative;
+}
+
+.reply__column:last-child {
+  width: 90%;
+  position: relative;
+}
+
+.reply input {
+  padding: 10px;
+  width: 70%;
+  border: var(--main-border);
+  border-radius: 20px;
+  transition: all 0.3s ease-in-out;
+}
+
+#chat_3 {
+    background-color: #ABC1D1;
+}
+
+.message-row__content {
+  width: 60%;
+  margin-left: 15px;
+}
+
+
+.message__author {
+  opacity: 0.8;
+  font-size: 13px;
+  font-weight: 100;
+
+}
+
+.message__bubble {
+  background-color: white;
+  padding: 13px;
+  font-size: 10px;
+  border-radius: 17px;
+  border-top-left-radius: 0px;
+  margin-right: 5px;
+  margin-left: 5px;
+}
+
+.message__info {
+  display: flex;
+  align-items: flex-end;
+  margin-bottom: 15px;
+}
+
+.message__time {
+  opacity: 0.8;
+  font-size: 12px;
+  margin-left: 5px;
+  text-align: right;
+}
+
+.message-row--own .message__bubble {
+  background-color: var(--blue);
+  border-top-right-radius: 0px;
+  border-top-left-radius: 15px;
+  margin-right: 0px;
+  margin-left: 5px;
+}
+
+.message-row--own .message__info {
+  flex-direction: row-reverse;
+}
+
+
+    </style>
+</head>
+<body class="chat-screen">
+    <div class="page-content page-container main-screen main-chat" id="page-content">
+        <div class="padding">
+            <div class="row container d-flex justify-content-center">
+                <div class="col-md-8">
+                    <div class="card card-bordered"><!--여기가 대가리 header-->
+                        <div class="status-bar">
+                            <div class="status-bar__column">
+                                <span>No Service</span>
+                                <i class="fas fa-wifi"></i> 
+                            </div>
+                            <div class="status-bar__column">
+                            <span>10:31</span>
+                            </div>
+                            <div class="status-bar__column">
+                            <span>600%</span>
+                            <i class="fas fa-battery-full fa-lg"></i>
+                            </div>
+                    </div>
+                    <header class="alt-header">
+                            <div class="alt-header__column">
+                                <h1 class="alt-header__title">Socket Chat</h1>
+                            </div>
+                            <!--<div class="alt-header__column">
+                                <span><i class="fas fa-search fa-lg"></i></span>
+                                <span><i class="fas fa-bars fa-lg"></i></span>
+                            </div>-->
+                    </header>
+                        <div id="chat_3" class="ps-container ps-theme-default ps-active-y" id="chat-content" style="overflow-y: scroll !important; height:400px !important;">
+                            <!-- 받는 이미지 -->
+                            <div id="chat_2" class="media media-chat"><!--뭐 하는 놈인지 모름-->
+                                <div id="chat_1" class='media-body'><!--입장 메시지-->
+
+                                </div>
+                            </div>
+                            <!-- <div class="media media-meta-day">Today</div> -->
+                            <!-- 보내는 이미지 -->
+                            <div id="chat_n2" class="media media-chat media-chat-reverse">
+                                <div id="chat_n1" class="media-body">
+                                </div>
+                            </div>
+
+                        </div>
+                        <div class="reply bt-1 border-dark">
+                            <div class="reply__column borderPlz">
+                                <input class="publisher-input" type="text" id="nick" placeholder="Chose ur nickname">
+                            </div>
+                        </div>
+                        <div class="reply bt-1 border-dark">
+                            <input class="publisher-input" type="text" id="chat" placeholder="Write a msg..">
+                            <a class="primary-btn text-info" href="#" data-abc="true" onclick="go();">
+                                <i class="fas fa-arrow-u">Send</i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+
+        const socket = io.connect();
+
+        let myNick;
+        var socket_id;
+
+        socket.on( "skcreated", ( data ) => {
+            socket_id = data;
+        });
+
+        function go(){
+            if (chat === ""){
+                alert ("빈칸을 채워주세요");
+                return false;
+            } else {
+                let nick = $('#nick').val();
+                let chat = $('#chat').val();
+                let data = { chat, nick };
+                // socket.emit( "sendMsg", document.getElementById("chat").value);
+                socket.emit( "sendMsg", data );
+                document.getElementById("chat").value="";
+                $("#chat").focus();
+            }
+        }
+
+        chat.addEventListener('keypress', function(e){
+            if (e.key === "Enter"){
+                if (chat === ""){
+                    alert ("빈칸을 채워주세요");
+                    return false;
+                } else {
+                    let nick = $('#nick').val();
+                    let chat = $('#chat').val();
+                    let data = { chat, nick };
+                    // socket.emit( "sendMsg", document.getElementById("chat").value);
+                    socket.emit( "sendMsg", data );
+                    document.getElementById("chat").value="";
+                    $("#chat").focus();
+                }
+            }
+        });
+
+        socket.on( "newMsg", ( data ) => {
+            if( socket_id === data[socket.id]){
+                console.log(socket_id)
+                    $("#chat_n2").find($("#chat_n1").append(
+                        "<div class='message-row__content'>"+
+                        "<span class='pl-2 message__author' >"+
+                        data["nick_a"]+
+                        "</span>"+
+                        "<p class='message__bubble'>"+
+                        data["chat_a"]+
+                        "</p>"+
+                        "<div class='message__time' style='font-size: smaller;'>"+
+                        data["Time_now"]+
+                        "</div>"+
+                        "</div>"+
+                        "<br>"
+                    ));
+                    $('#chat_3').scrollTop($('#chat_3')[0].scrollHeight);
+            } else {
+                $("#chat_n2").find($("#chat_n1").append(
+                        "<div class='message-row__content'>"+
+                        "<span class='pl-2 message__author'>"+
+                        data["nick_a"]+
+                        "</span><br>"+
+                        "<p class='message__bubble'>"+
+                        data["chat_a"]+
+                        "</p>"+
+                        "<div class='message__time' style='font-size: smaller;'>"+
+                        data["Time_now"]+
+                        "</div>"+
+                        "</div>"+
+                        "<br>"
+                    ));
+                    $('#chat_3').scrollTop($('#chat_3')[0].scrollHeight);
+            }
+        });
+
+        socket.on( "notice", ( data ) => {
+            let div = document.createElement("div");
+            $('#chat_2').find($('#chat_1').append('<div class = "media media-meta-day">'+ data["socketid"] + data["disc"] + '</div>'));
+            $('#chat_3').scrollTop($('#chat_3')[0].scrollHeight);
+        });
+    </script>
+</body>
+</html>
+

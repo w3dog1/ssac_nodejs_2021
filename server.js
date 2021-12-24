@@ -15,13 +15,17 @@ app.get("/", (_, res) => {
 });
 //app.get("/*", (_, res) => res.redirect("/"));
 
+// socket에 sids, rooms
 function publicRooms(){
     const {
         sockets: {
             adapter: { sids, rooms },
         },
     } = io;
+    // publicRooms? 빈 배열이다
     const publicRooms = [];
+
+    // 방마다 key를 뿌리겠다!! publicRooms 빈 배열에 key를 넣겠다!
     rooms.forEach((_, key) => {
         if(sids.get(key) === undefined){
             publicRooms.push(key);
@@ -30,6 +34,7 @@ function publicRooms(){
     return publicRooms;
 }
 
+// 그룹에 속한 클라이언트 세는 것임 roomName 몇 개지? size?
 function countRoom(roomName){
     return io.sockets.adapter.rooms.get(roomName)?.size;
 }
